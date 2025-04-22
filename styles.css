@@ -31,3 +31,9 @@ button {
   color: #657786;
   margin-top: 5px;
 }
+
+.stats-details {
+  font-size: 12px;
+  color: #657786;
+  margin-top: 3px;
+}

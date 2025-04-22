@@ -9,6 +9,7 @@ const SLOP_KEYWORDS = [
 ];
 
 function keywordSlopScore(text) {
+  if (text.includes("#connect")) return 0.25;
   let score = 0;
   SLOP_KEYWORDS.forEach((regex) => {
     if (regex.test(text)) score += 0.15;
@@ -91,7 +92,7 @@ function handleFiltering() {
   }
 }
 
-const filteringInterval = setInterval(handleFiltering, 1000);
+const filteringInterval = setInterval(handleFiltering, 2000);
 
 // Add message listener to respond with hidden count
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -99,7 +100,61 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const hiddenTweets = document.querySelectorAll(
       "article.thread-filter-hidden"
     );
-    sendResponse({ count: hiddenTweets.length });
+    const adTweets = document.querySelectorAll("article.ad-hidden");
+    const slopTweets = document.querySelectorAll(
+      "article.thread-filter-hidden:not(.ad-hidden)"
+    );
+
+    sendResponse({
+      total: hiddenTweets.length,
+      slop: slopTweets.length,
+      ads: adTweets.length,
+    });
   }
   return true; // Keep the message channel open for async response
 });
+
+function hideAds() {
+  // Find promoted tweets (ads) - they usually have a "promoted" label
+  const promotedLabels = document.querySelectorAll(
+    '[data-testid="promotedIndicator"]'
+  );
+
+  promotedLabels.forEach((label) => {
+    // Find the parent article element
+    const adTweet = label.closest("article");
+    if (adTweet && !adTweet.classList.contains("thread-filter-hidden")) {
+      adTweet.style.display = "none";
+      adTweet.classList.add("thread-filter-hidden");
+      adTweet.classList.add("ad-hidden");
+    }
+  });
+
+  // Find official ads marked with "Ad" label in span tags
+  const spans = document.querySelectorAll("span");
+  spans.forEach((span) => {
+    if (span.textContent === "Ad") {
+      const adTweet = span.closest("article");
+      if (adTweet && !adTweet.classList.contains("thread-filter-hidden")) {
+        adTweet.style.display = "none";
+        adTweet.classList.add("thread-filter-hidden");
+        adTweet.classList.add("ad-hidden");
+      }
+    }
+  });
+
+  // Alternative method: look for "Promoted" or "Sponsored" text in tweets
+  const tweets = document.querySelectorAll(
+    "article:not(.thread-filter-hidden)"
+  );
+  tweets.forEach((tweet) => {
+    if (
+      tweet.innerText.includes("Promoted") ||
+      tweet.innerText.includes("Sponsored")
+    ) {
+      tweet.style.display = "none";
+      tweet.classList.add("thread-filter-hidden");
+      tweet.classList.add("ad-hidden");
+    }
+  });
+}

@@ -1,5 +1,7 @@
 const toggleButton = document.getElementById("toggle");
 const hiddenCountElement = document.getElementById("hidden-count");
+const slopCountElement = document.getElementById("slop-count");
+const adCountElement = document.getElementById("ad-count");
 
 // Update the hidden count when popup opens
 function updateHiddenCount() {
@@ -17,13 +19,17 @@ function updateHiddenCount() {
             console.error(chrome.runtime.lastError);
             return;
           }
-          if (response && response.count !== undefined) {
-            hiddenCountElement.textContent = response.count;
+          if (response) {
+            hiddenCountElement.textContent = response.total || 0;
+            slopCountElement.textContent = response.slop || 0;
+            adCountElement.textContent = response.ads || 0;
           }
         }
       );
     } else {
       hiddenCountElement.textContent = "N/A";
+      slopCountElement.textContent = "0";
+      adCountElement.textContent = "0";
     }
   });
 }
@@ -47,4 +53,4 @@ toggleButton.addEventListener("click", () => {
 });
 
 // Update count every second while popup is open
-setInterval(updateHiddenCount, 1000);
+setInterval(updateHiddenCount, 2000);
