@@ -17,6 +17,10 @@ function updateHiddenCount() {
         (response) => {
           if (chrome.runtime.lastError) {
             console.error(chrome.runtime.lastError);
+            // Show N/A if we can't get counts
+            hiddenCountElement.textContent = "N/A";
+            slopCountElement.textContent = "N/A";
+            adCountElement.textContent = "N/A";
             return;
           }
           if (response) {
@@ -36,7 +40,7 @@ function updateHiddenCount() {
 
 // Initialize toggle button state
 chrome.storage.local.get(["filterEnabled"], (result) => {
-  const enabled = result.filterEnabled ?? true;
+  const enabled = result.filterEnabled !== false; // Default to true
   toggleButton.textContent = enabled ? "Disable Filter" : "Enable Filter";
   updateHiddenCount();
 });
@@ -44,10 +48,12 @@ chrome.storage.local.get(["filterEnabled"], (result) => {
 // Handle toggle button click
 toggleButton.addEventListener("click", () => {
   chrome.storage.local.get(["filterEnabled"], (result) => {
-    const newValue = !result.filterEnabled;
+    const newValue = !(result.filterEnabled !== false); // Toggle the current value
     chrome.storage.local.set({ filterEnabled: newValue }, () => {
       toggleButton.textContent = newValue ? "Disable Filter" : "Enable Filter";
-      updateHiddenCount();
+      // The background script will notify content scripts
+      // Wait a moment for the change to take effect
+      setTimeout(updateHiddenCount, 500);
     });
   });
 });

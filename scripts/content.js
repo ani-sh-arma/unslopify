@@ -72,26 +72,53 @@ function showPreviouslyHiddenTweets() {
   });
 }
 
-function handleFiltering() {
-  try {
-    chrome.storage.local.get(["filterEnabled"], (result) => {
-      if (chrome.runtime.lastError) {
-        clearInterval(filteringInterval);
-        return;
-      }
+// Local flag for filter state
+window.isFilterEnabled = true; // default to enabled
 
-      if (result.filterEnabled) {
-        hideSlopTweets();
-      } else {
-        showPreviouslyHiddenTweets();
-      }
-    });
-  } catch (error) {
-    console.error("Error accessing storage:", error);
-    clearInterval(filteringInterval);
-  }
+// Initialize by getting the current state from storage
+try {
+  chrome.storage.local.get(["filterEnabled"], (result) => {
+    if (chrome.runtime.lastError) {
+      console.warn(
+        "Using default settings due to:",
+        chrome.runtime.lastError.message
+      );
+      return; // Keep default value
+    }
+    // Update local flag with stored value (default to true if not set)
+    window.isFilterEnabled = result.filterEnabled !== false;
+  });
+} catch (e) {
+  console.warn("Could not access storage, using default settings");
+  // Keep default value (true)
 }
 
+// Listen for messages from the background script
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === "toggleFiltering") {
+    window.isFilterEnabled = message.enabled;
+    // Apply changes immediately
+    if (window.isFilterEnabled) {
+      hideSlopTweets();
+      hideAds();
+    } else {
+      showPreviouslyHiddenTweets();
+    }
+  }
+  return true; // Keep message channel open for async responses
+});
+
+function handleFiltering() {
+  // Use the local flag instead of checking storage every time
+  if (window.isFilterEnabled) {
+    hideSlopTweets();
+    hideAds();
+  }
+  // We don't need an else case here since we only want to hide new content
+  // Showing previously hidden content happens when the toggle changes
+}
+
+// Set up the filtering interval with a more reasonable refresh rate
 const filteringInterval = setInterval(handleFiltering, 2000);
 
 // Add message listener to respond with hidden count
