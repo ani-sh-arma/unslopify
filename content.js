@@ -92,3 +92,14 @@ function handleFiltering() {
 }
 
 const filteringInterval = setInterval(handleFiltering, 1000);
+
+// Add message listener to respond with hidden count
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "getHiddenCount") {
+    const hiddenTweets = document.querySelectorAll(
+      "article.thread-filter-hidden"
+    );
+    sendResponse({ count: hiddenTweets.length });
+  }
+  return true; // Keep the message channel open for async response
+});

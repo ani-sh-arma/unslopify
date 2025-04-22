@@ -14,3 +14,20 @@ button {
   border-radius: 5px;
   cursor: pointer;
 }
+
+#stats {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+#hidden-count {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1da1f2;
+}
+
+.stats-label {
+  font-size: 14px;
+  color: #657786;
+  margin-top: 5px;
+}
