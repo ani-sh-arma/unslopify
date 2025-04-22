@@ -1,0 +1,17 @@
+{
+  "name": "unslopify",
+  "version": "1.0.0",
+  "description": "\"background\": {\r \"service_worker\": \"background.js\"\r },",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild analyzer.js --bundle --outfile=dist/analyzer.js --format=esm"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.25.2",
+    "sentiment": "^5.0.2"
+  }
+}
